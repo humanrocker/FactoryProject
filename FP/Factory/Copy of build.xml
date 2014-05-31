@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<project name="Factory Project" default="prepare" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	<property name="project.name" value="Factory Project" />
+	<property name="project.version" value="1.0" />
+
+	<!-- Set up properties containing important project directories -->
+	<property name="source.root" value="${basedir}/src" />
+	<property name="class.root" value="${basedir}/WebRoot/WEB-INF/classes" />
+	<property name="lib.root" value="${basedir}/WebRoot/WEB-INF/lib" />
+
+	<property name="source.dir" value="${source.root}/com/factoryproject" />
+
+	<!-- Set up the class path for library -->
+	<path id="project.lib.path">
+		<!-- Include our own lib -->
+		<fileset dir="${lib.root}">
+			<include name="**/*.jar" />
+			<include name="**/*.zip" />
+		</fileset>
+	</path>
+
+	<!-- Set up the class path for compilation and execution -->
+	<path id="project.class.path">
+		<pathelement location="${class.root}" />
+		<!-- Add the dependencies classpath -->
+		<path refid="dependency.classpath" />
+		<path refid="project.lib.path" />
+	</path>
+
+	<artifact:dependencies pathId="dependency.classpath">
+		<dependency groupId="mysql" artifactId="mysql-connector-java" version="5.1.30" />
+		<dependency groupId="org.hibernate" artifactId="hibernate-core" version="4.3.1.Final">
+			<exclusion groupId="javax.transaction" artifactId="jta" />
+		</dependency>
+		<dependency groupId="org.hibernate" artifactId="hibernate-tools" version="4.3.1.CR1" />
+		<dependency groupId="org.apache.geronimo.specs" artifactId="geronimo-jpa_2.0_spec" version="1.1" />
+		<dependency groupId="log4j" artifactId="log4j" version="1.2.17" />
+		<dependency groupId="org.slf4j" artifactId="slf4j-api" version="1.7.6" />
+	</artifact:dependencies>
+
+	<!-- Teach Ant how to use the Hibernate Tools -->
+	<taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask" classpathref="project.class.path" />
+
+	<target name="print-classpath" description="Show the dependency class path">
+		<property name="class.path" refid="dependency.class.path" />
+		<echo>${class.path}</echo>
+	</target>
+
+	<!-- Create our runtime subdirectories and copy resources into them -->
+	<target name="prepare" description="Sets up build structures">
+		<mkdir dir="${class.root}" />
+		<!-- Copy our property files and O/R mappings for use at runtime -->
+		<copy todir="${class.root}">
+			<fileset dir="${source.root}">
+				<include name="**/*.properties" />
+				<include name="**/*.hbm.xml" />
+				<include name="**/*.cfg.xml" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- Compile the UserType definitions so they can be used in the code generation phase. -->
+	<!--
+	<target name="usertypes" depends="prepare" description="Compile custom type definitions needed in by codegen">
+		<javac srcdir="${source.root}" includes="com/oreilly/hh/*Type.java" destdir="${class.root}" debug="on" optimize="off" deprecation="on">
+			<classpath refid="project.class.path" />
+		</javac>
+	</target>
+	-->
+
+	<!-- Generate the java code for all mapping files in our source tree -->
+	<target name="codeGen" depends="prepare" description="Generate Java source from the O/R mapping files">
+		<hibernatetool destdir="${source.root}">
+			<configuration configurationfile="${source.root}/hibernate.cfg.xml" />
+			<hbm2java jdk5="true" />
+		</hibernatetool>
+	</target>
+
+	<target name="homeGen" depends="prepare" description="Generate Java dao source from the O/R mapping files">
+		<hibernatetool destdir="${source.root}">
+			<configuration configurationfile="${source.root}/hibernate.cfg.xml" />
+			<hbm2dao jdk5="true" />
+		</hibernatetool>
+	</target>
+
+
+	<!-- Compile the java source of the project -->
+	<target name="compile" description="Compiles all Java classes">
+		<javac srcdir="${source.root}" destdir="${class.root}" debug="on" optimize="off" deprecation="on">
+			<classpath refid="project.class.path" />
+		</javac>
+	</target>
+
+	<!-- Generate the schemas for all mapping files in our class tree -->
+	<target name="schema" depends="compile" description="Generate DB schema from the O/R mapping files">
+		<hibernatetool destdir="${source.root}">
+			<configuration configurationfile="${source.root}/hibernate.cfg.xml" />
+			<hbm2ddl drop="yes" />
+		</hibernatetool>
+	</target>
+
+	<target name="ctest" description="Creates and persists some sample data" depends="compile">
+		<java classname="com.factoryproject.CreateTest" fork="true" failonerror="true">
+			<classpath refid="project.class.path" />
+		</java>
+	</target>
+
+</project>

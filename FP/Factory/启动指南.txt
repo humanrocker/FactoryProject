@@ -1,0 +1,8 @@
+
+1. 导入工程
+2. 修改hibernate.cfg.xml内数据库用户名密码
+3. 运行MySQL5，建好factory数据库
+4. ant schema compile
+5. 运行数据库管理，添加几个用户
+6. 部署到tomcat
+7. 启动tomcat
