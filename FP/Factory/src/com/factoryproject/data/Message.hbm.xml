@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE hibernate-mapping PUBLIC 
 "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
 "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
@@ -15,20 +15,24 @@
 		</id>
 
 		<property generated="never" name="content" not-null="true"
-			type="string" />
+			type="string">
+			<meta attribute="field-description">Content of the message. </meta>
+		</property>
 
-		<property generated="never" name="createdDate" type="timestamp">
-			<meta attribute="field-description">When the message was created</meta>
+		<property generated="never" name="dateAdded" type="timestamp">
+			<meta attribute="field-description">When the message was created. </meta>
 		</property>
 
 		<property generated="never" name="speaker"
 			type="com.factoryproject.data.User" not-null="true">
-			<meta attribute="field-description">Messages by this user</meta>
+			<meta attribute="field-description">Messages by this user. </meta>
 		</property>
 
 		<many-to-one class="com.factoryproject.data.Message" name="replyingMessage"
 			cascade="all" column="RE_MESSAGE_ID" foreign-key="FK_NEXT_MESSAGE">
+			<meta attribute="field-description">Message that this one replies to.</meta>
 			<meta attribute="use-in-tostring">true</meta>
 		</many-to-one>
+
 	</class>
 </hibernate-mapping>

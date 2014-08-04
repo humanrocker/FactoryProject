@@ -4,9 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Criteria;
-import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.Transaction;
 
 import com.factoryproject.dao.GenericHibernateDAO;
 import com.factoryproject.data.News;
@@ -18,81 +16,24 @@ import com.factoryproject.data.User;
  * @author TonyHong
  */
 public class NewsHibernateDAO extends GenericHibernateDAO<News, Integer> {
-	private static Session currentSession;
-	private Transaction tx;
 
 	/**
 	 * Constructor function <br />
 	 * Begin a new transaction automatically <br />
 	 */
 	public NewsHibernateDAO() {
-		openSession();
 		beginTransaction();
 	}
 
 	/**
-	 * Deconstructor function <br />
-	 * Must be called after using the object!!! <br />
-	 * 一定要在使用完DAO对象后调用！！！
-	 */
-	public void destory() {
-		commitTransaction();
-		closeSession();
-	}
-
-	/**
-	 * Open a new hibernate session by calling getSession() in <br />
-	 * <code> com.factoryproject.HibernateSessionFactory </code>
-	 * 
-	 * @see com.factoryproject.HibernateSessionFactory
-	 */
-	protected void openSession() {
-		currentSession = getSession();
-		if (currentSession != null)
-			setSession(currentSession);
-	}
-
-	/**
-	 * Close the single hibernate session instance by calling closeSession() in <br />
-	 * <code> com.factoryproject.HibernateSessionFactory </code>
-	 * 
-	 * @see com.factoryproject.HibernateSessionFactory
-	 */
-	protected void closeSession() {
-		close();
-	}
-
-	/**
-	 * Begin a new transaction by calling beginTransaction() in <br />
-	 * <code>  org.hibernate.Session </code>
-	 * 
-	 * @see org.hibernate.Transaction
-	 */
-	protected void beginTransaction() {
-		if (currentSession != null)
-			tx = currentSession.beginTransaction();
-	}
-
-	/**
-	 * Commit the current transaction by calling commit() in <br />
-	 * <code> org.hibernate.Session </code>
-	 * 
-	 * @see org.hibernate.Transaction
-	 */
-	protected void commitTransaction() {
-		if (tx != null)
-			tx.commit();
-	}
-
-	/**
 	 * Persist a News object <br />
-	 * 
+	 * 持久化
 	 * @param News
-	 * @return
+	 * @return	The object itself.
 	 */
-	public News addNews(News message) {
-		makePersistent(message);
-		return message;
+	public News addNews(News news) {
+		makePersistent(news);
+		return news;
 	}
 
 	/**
@@ -101,9 +42,9 @@ public class NewsHibernateDAO extends GenericHibernateDAO<News, Integer> {
 	 * @param News
 	 * @return
 	 */
-	public News deleteNews(News message) {
-		makeTransient(message);
-		return message;
+	public News deleteNews(News news) {
+		makeTransient(news);
+		return news;
 	}
 
 	/**
@@ -111,52 +52,52 @@ public class NewsHibernateDAO extends GenericHibernateDAO<News, Integer> {
 	 * 
 	 * @return a list of all News objects
 	 */
-	public List<News> getAllNewss() {
+	public List<News> getAllNews() {
 		return findAll();
 	}
 
 	/**
 	 * Find a News object by its index <br />
 	 * 
-	 * @param messageID
+	 * @param newsID
 	 * @return an object of index NewsID
 	 */
-	public News findNewsByID(Integer messageID) {
-		return findById(messageID, false);
+	public News findNewsByID(Integer newsID) {
+		return findById(newsID, false);
 	}
 
 	/**
 	 * Find the content of the News object by its index <br />
 	 * 
-	 * @param messageID
+	 * @param newsID
 	 * @return The content of the object of index NewsID
 	 */
-	public String getContentByID(Integer messageID) {
-		return findNewsByID(messageID).getContent();
+	public String getContentByID(Integer newsID) {
+		return findNewsByID(newsID).getContent();
 	}
 
 	/**
 	 * Find the added date of the News object by its index <br />
 	 * 
-	 * @param messageID
+	 * @param newsID
 	 * @return The added date of the object of index NewsID
 	 */
-	public Date getCreatedDateByID(Integer messageID) {
-		return findNewsByID(messageID).getCreatedDate();
+	public Date getCreatedDateByID(Integer newsID) {
+		return findNewsByID(newsID).getCreatedDate();
 	}
 
 	/**
-	 * Find the pubisher of the News object by its index <br />
+	 * Find the speaker of the News object by its index <br />
 	 * 
-	 * @param messageID
+	 * @param newsID
 	 * @return The added date of the object of index NewsID
 	 */
-	public User getPublisherByID(Integer messageID) {
-		return findNewsByID(messageID).getPublisher();
+	public User getSpeakerByID(Integer newsID) {
+		return findNewsByID(newsID).getSpeaker();
 	}
 
 	/**
-	 * Find the messages of the News object by specfic content <br />
+	 * Find the newss of the News object by specfic content <br />
 	 * 
 	 * @param content
 	 * @return The added date of the object of index NewsID
@@ -168,31 +109,30 @@ public class NewsHibernateDAO extends GenericHibernateDAO<News, Integer> {
 	}
 
 	/**
-	 * Find the messages of the News object by specfic pubisher <br />
+	 * Find the newss of the News object by specfic speaker <br />
 	 * 
-	 * @param pubisher
+	 * @param speaker
 	 * @return The added date of the object of index NewsID
 	 */
 	@SuppressWarnings("unchecked")
-	public List<News> findNewssByPubisher(User pubisher) {
+	public List<News> findNewsBySpeaker(User speaker) {
 		Criteria criteria = getSession().createCriteria(News.class);
 		List<News> result = criteria
-				.add(Restrictions.eq("pubisher", pubisher)).list();
+				.add(Restrictions.eq("speaker", speaker)).list();
 		return result;
 	}
 
 	/**
-	 * Find the messages of the News object by specfic added date <br />
+	 * Find the newss of the News object by specfic added date <br />
 	 * 
-	 * @param createdDate
+	 * @param addedDate
 	 * @return The added date of the object of index NewsID
 	 */
 	@SuppressWarnings("unchecked")
-	public List<News> findNewssByCreatedDate(Date createdDate) {
+	public List<News> findNewsByDateAdded(Date addedDate) {
 		Criteria criteria = getSession().createCriteria(News.class);
 		List<News> result = criteria.add(
-				Restrictions.eq("createdDate", createdDate)).list();
+				Restrictions.eq("dateAdded", addedDate)).list();
 		return result;
 	}
-
 }

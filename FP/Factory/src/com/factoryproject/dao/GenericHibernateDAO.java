@@ -7,6 +7,7 @@ import java.lang.reflect.*;
 import org.hibernate.Criteria;
 import org.hibernate.LockMode;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Example;
 
@@ -14,21 +15,19 @@ import com.factoryproject.HibernateSessionFactory;
 
 /**
  * Interface of all DAOs using Hibernate <br \>
- * 所有使用Hibernate的DAO的接口
  * 
  * @author TonyHong
  * 
  * @param <T>
  *            Type of instance <br \>
- *            存储对象的类型
  * @param <ID>
  *            Type of index <br \>
- *            对象索引的类型
  */
 public abstract class GenericHibernateDAO<T, ID extends Serializable>
 		implements GenericDAO<T, ID> {
 	private Class<T> persistentClass;
 	private Session session;
+	private Transaction tx;
 
 	/**
 	 * Construction function <br />
@@ -41,6 +40,7 @@ public abstract class GenericHibernateDAO<T, ID extends Serializable>
 
 	/**
 	 * Set current session <br />
+	 * 
 	 * @param s
 	 *            The current session <br />
 	 */
@@ -57,6 +57,39 @@ public abstract class GenericHibernateDAO<T, ID extends Serializable>
 		if (session == null)
 			session = HibernateSessionFactory.getSession();
 		return session;
+	}
+
+	/**
+	 * Deconstructor function <br />
+	 */
+	protected void finalize() throws java.lang.Throwable {
+		System.out.println("Cleaning up... ");
+		commitTransaction();
+		close();
+		super.finalize();
+		System.out.println(this.toString() + "Finalized! ");
+	}
+
+	/**
+	 * Begin a new transaction by calling beginTransaction() in <br />
+	 * <code>  org.hibernate.Session </code>
+	 * 
+	 * @see org.hibernate.Transaction
+	 */
+	protected void beginTransaction() {
+		if (tx == null)
+			tx = getSession().beginTransaction();
+	}
+
+	/**
+	 * Commit the current transaction by calling commit() in <br />
+	 * <code> org.hibernate.Session </code>
+	 * 
+	 * @see org.hibernate.Transaction
+	 */
+	protected void commitTransaction() {
+		if (tx != null && !tx.wasCommitted())
+			tx.commit();
 	}
 
 	/**
@@ -103,15 +136,28 @@ public abstract class GenericHibernateDAO<T, ID extends Serializable>
 		getSession().delete(entity);
 	}
 
+	/**
+	 * Flush the session. <br />
+	 * 
+	 */
 	public void flush() {
 		getSession().flush();
 	}
 
+	/**
+	 * Clear the session. <br />
+	 * 
+	 */
 	public void clear() {
 		getSession().clear();
 	}
 
+	/**
+	 * Close the session. <br />
+	 * 
+	 */
 	public void close() {
+		commitTransaction();
 		getSession().close();
 	}
 
@@ -121,8 +167,8 @@ public abstract class GenericHibernateDAO<T, ID extends Serializable>
 	 * @param criterion
 	 *            The reference to the List of criterion for target
 	 *            object/objects <br />
-	 * @return The reference to the List of object which comes from
-	 *         the query by the example <br />
+	 * @return The reference to the List of object which comes from the query by
+	 *         the example <br />
 	 */
 	@SuppressWarnings("unchecked")
 	protected List<T> findByCriteria(Criterion... criterion) {

@@ -2,11 +2,8 @@ package com.factoryproject.dao;
 
 import java.util.List;
 
-
 import org.hibernate.Criteria;
-import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.Transaction;
 
 import com.factoryproject.data.User;
 
@@ -16,72 +13,15 @@ import com.factoryproject.data.User;
  * @author TonyHong
  */
 public class UserHibernateDAO extends GenericHibernateDAO<User, Integer> {
-	private static Session currentSession;
-	private Transaction tx;
 
 	/**
 	 * Constructor function <br />
 	 * Begin a new transaction automatically <br />
 	 */
 	public UserHibernateDAO() {
-		openSession();
 		beginTransaction();
 	}
 
-	/**
-	 * Deconstructor function <br />
-	 * Must be called after using the object!!! <br />
-	 * 一定要在使用完DAO对象后调用！！！
-	 */
-	public void destory() {
-		commitTransaction();
-		closeSession();
-	}
-
-	/**
-	 * Open a new hibernate session by calling getSession() in <br />
-	 * <code> com.factoryproject.HibernateSessionFactory </code>
-	 * 
-	 * @see com.factoryproject.HibernateSessionFactory
-	 */
-	protected void openSession() {
-		currentSession = getSession();
-		if (currentSession != null)
-			setSession(currentSession);
-	}
-
-	/**
-	 * Close the single hibernate session instance by calling closeSession() in <br />
-	 * <code> com.factoryproject.HibernateSessionFactory </code>
-	 * 
-	 * @see com.factoryproject.HibernateSessionFactory
-	 */
-	protected void closeSession() {
-		close();
-	}
-
-	/**
-	 * Begin a new transaction by calling beginTransaction() in <br />
-	 * <code>  org.hibernate.Session </code>
-	 * 
-	 * @see org.hibernate.Transaction
-	 */
-	protected void beginTransaction() {
-		if (currentSession != null)
-			tx = currentSession.beginTransaction();
-	}
-
-	/**
-	 * Commit the current transaction by calling commit() in <br />
-	 * <code> org.hibernate.Session </code>
-	 * 
-	 * @see org.hibernate.Transaction
-	 */
-	protected void commitTransaction() {
-		if (tx != null)
-			tx.commit();
-	}
-	
 	/**
 	 * Persist a User object <br />
 	 * 
@@ -105,31 +45,61 @@ public class UserHibernateDAO extends GenericHibernateDAO<User, Integer> {
 	}
 
 	/**
-	 * Find all Message objects <br />
+	 * Find all User objects <br />
 	 * 
-	 * @return a list of all Message objects
+	 * @return a list of all User objects
 	 */
 	public List<User> getAllUsers() {
 		return findAll();
 	}
 
 	/**
-	 * Find a Message object by its index <br />
+	 * Fail at test! -- 19.06.14 by Tony Hong <br />
+	 * 
+	 * Find a User object by its index <br />
 	 * 
 	 * @param userID
-	 * @return an object of index MessageID
+	 * @return an object of index: UserID
 	 */
 	public User findUserByID(Integer userID) {
 		return findById(userID, false);
 	}
-	
+
+	/**
+	 * Find a User object by its username <br />
+	 * 
+	 * Not tested! ID is managed by DB
+	 * 
+	 * @param name
+	 * @return an object of username
+	 */
+	public User findUserByName(String username) {
+		Criteria criteria = getSession().createCriteria(User.class);
+		criteria.add(Restrictions.eq("username", username));
+		return (User) criteria.uniqueResult();
+	}
+
+	/**
+	 * Set the password for a User object. <br />
+	 * Find the user by its username and then set the password for it. <br />
+	 * 
+	 * @param username
+	 * @param password
+	 */
 	public void setPasswordByUsername(String username, String password) {
 		User user = findUserByName(username);
 		makeTransient(user);
 		user.setPassword(password);
 		makePersistent(user);
-	} 
+	}
 
+	/**
+	 * Set the permission for a User object. <br />
+	 * Find the user by its username and then set the permission for it. <br />
+	 * 
+	 * @param username
+	 * @param permission
+	 */
 	public void setPermissionByUsername(String username, int permission) {
 		User user = findUserByName(username);
 		makeTransient(user);
@@ -137,21 +107,34 @@ public class UserHibernateDAO extends GenericHibernateDAO<User, Integer> {
 		makePersistent(user);
 	}
 
+	/**
+	 * Get the password for a User object. <br />
+	 * Find the user by its username and then get the password for it. <br />
+	 * 
+	 * @param username
+	 * @retuen password
+	 */
 	public String getPasswordByUsername(String username) {
 		return findUserByName(username).getPassword();
 	}
 
+	/**
+	 * Get the permission for a User object. <br />
+	 * Find the user by its username and then get the permission for it. <br />
+	 * 
+	 * @param username
+	 * @retuen permission
+	 */
 	public int getPermissionByUsername(String username) {
 		return findUserByName(username).getPermission();
 	}
 
-
-	public User findUserByName(String name) {
-		Criteria criteria = getSession().createCriteria(User.class);
-		criteria.add(Restrictions.eq("username", name));
-		return (User) criteria.uniqueResult();
-	}
-
+	/**
+	 * Find all User objects which have the same permission <br />
+	 * 
+	 * @param permission
+	 * @return a list of all User objects
+	 */
 	@SuppressWarnings("unchecked")
 	public List<User> findUsersByPermission(int permission) {
 		Criteria criteria = getSession().createCriteria(User.class);

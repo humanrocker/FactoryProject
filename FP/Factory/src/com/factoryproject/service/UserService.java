@@ -3,17 +3,28 @@ package com.factoryproject.service;
 import com.factoryproject.dao.UserHibernateDAO;
 import com.factoryproject.data.User;
 
-public class VerifyUser {
+public class UserService {
+
+	public static boolean add(User user) {
+		UserHibernateDAO udao = new UserHibernateDAO();
+		udao.addUser(user);// 
+		if(udao.findUserByName(user.getUsername()).equals(user)){
+			udao = null;
+			return true;
+		}else{
+			udao = null;
+			return false;
+		}
+		
+	}
+	
 	/**
-	 * No need to create a class for this service.
-	 * 12/06/2014
+	 * To verify a user.
 	 * 
 	 * @author TonyHong
-	 * @deprecated
-	 * @param user
+	 * @param user The user object to verify.
 	 * @return The result of verification. 
 	 */
-	@Deprecated
 	public static boolean doVerify(User user) {
 		UserHibernateDAO udao = new UserHibernateDAO();
 		java.util.List<User> userList = udao.findAll();
@@ -25,5 +36,6 @@ public class VerifyUser {
 		}
 		return true;
 	}
+
 
 }

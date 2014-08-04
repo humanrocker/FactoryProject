@@ -4,11 +4,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Criteria;
-import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.Transaction;
 
-import com.factoryproject.HibernateSessionFactory;
 import com.factoryproject.dao.GenericHibernateDAO;
 import com.factoryproject.data.Message;
 import com.factoryproject.data.User;
@@ -19,70 +16,13 @@ import com.factoryproject.data.User;
  * @author TonyHong
  */
 public class MessageHibernateDAO extends GenericHibernateDAO<Message, Integer> {
-	private static Session currentSession;
-	private Transaction tx;
 
 	/**
 	 * Constructor function <br />
 	 * Begin a new transaction automatically <br />
 	 */
 	public MessageHibernateDAO() {
-		openSession();
 		beginTransaction();
-	}
-
-	/**
-	 * Deconstructor function <br />
-	 * Must be called after using the object!!! <br />
-	 * 一定要在使用完DAO对象后调用！！！
-	 */
-	public void destory() {
-		commitTransaction();
-		closeSession();
-	}
-
-	/**
-	 * Open a new hibernate session by calling getSession() in <br />
-	 * <code> com.factoryproject.HibernateSessionFactory </code>
-	 * 
-	 * @see com.factoryproject.HibernateSessionFactory
-	 */
-	protected void openSession() {
-		currentSession = getSession();
-		if (currentSession != null)
-			setSession(currentSession);
-	}
-
-	/**
-	 * Close the single hibernate session instance by calling closeSession() in <br />
-	 * <code> com.factoryproject.HibernateSessionFactory </code>
-	 * 
-	 * @see com.factoryproject.HibernateSessionFactory
-	 */
-	protected void closeSession() {
-		close();
-	}
-
-	/**
-	 * Begin a new transaction by calling beginTransaction() in <br />
-	 * <code>  org.hibernate.Session </code>
-	 * 
-	 * @see org.hibernate.Transaction
-	 */
-	protected void beginTransaction() {
-		if (currentSession != null)
-			tx = currentSession.beginTransaction();
-	}
-
-	/**
-	 * Commit the current transaction by calling commit() in <br />
-	 * <code> org.hibernate.Session </code>
-	 * 
-	 * @see org.hibernate.Transaction
-	 */
-	protected void commitTransaction() {
-		if (tx != null)
-			tx.commit();
 	}
 
 	/**
